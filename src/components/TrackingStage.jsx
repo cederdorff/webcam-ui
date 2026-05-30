@@ -1,20 +1,29 @@
+import Webcam from 'react-webcam'
+import { VIDEO_CONSTRAINTS } from '../handTracking'
+
 export function TrackingStage({
   canvasRef,
+  onCameraError,
+  onCameraReady,
   isLoading,
   isRunning,
   onStartCamera,
   puckRef,
-  videoRef,
+  webcamRef,
 }) {
   return (
     <div className="stage" data-running={isRunning ? 'true' : 'false'}>
-      <video
-        ref={videoRef}
-        className="webcam-feed"
-        muted
-        playsInline
-        aria-label="Webcam feed"
-      />
+      {isRunning && (
+        <Webcam
+          ref={webcamRef}
+          audio={false}
+          className="webcam-feed"
+          onUserMedia={onCameraReady}
+          onUserMediaError={onCameraError}
+          playsInline
+          videoConstraints={VIDEO_CONSTRAINTS}
+        />
+      )}
       <canvas ref={canvasRef} className="landmark-layer" aria-hidden="true" />
       <div ref={puckRef} className="control-object" role="img" aria-label="Puck">
         <span></span>

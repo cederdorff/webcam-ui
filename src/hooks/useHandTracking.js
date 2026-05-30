@@ -1,6 +1,5 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
-  CAMERA_SETTINGS,
   READY_STATUS,
   clearCanvas,
   createHandLandmarker,
@@ -10,10 +9,9 @@ import {
 } from '../handTracking'
 
 export function useHandTracking() {
-  const videoRef = useRef(null)
+  const webcamRef = useRef(null)
   const canvasRef = useRef(null)
   const puckRef = useRef(null)
-  const streamRef = useRef(null)
   const handLandmarkerRef = useRef(null)
   const animationRef = useRef(0)
   const lastVideoTimeRef = useRef(-1)
@@ -21,61 +19,51 @@ export function useHandTracking() {
   const [isRunning, setIsRunning] = useState(false)
   const [tracking, setTracking] = useState(READY_STATUS)
 
-  const stopCamera = useCallback(() => {
+  function stopCamera() {
     cancelAnimationFrame(animationRef.current)
-    stopStream(streamRef.current)
 
-    streamRef.current = null
     animationRef.current = 0
     lastVideoTimeRef.current = -1
-
-    if (videoRef.current) {
-      videoRef.current.pause()
-      videoRef.current.srcObject = null
-    }
 
     clearCanvas(canvasRef.current)
     showSearchingPuck(puckRef.current)
     setIsRunning(false)
     setTracking(READY_STATUS)
-  }, [])
+  }
 
-  const runFrameLoop = useCallback(
-    function runFrameLoop() {
-      const video = videoRef.current
-      const canvas = canvasRef.current
-      const puck = puckRef.current
-      const handLandmarker = handLandmarkerRef.current
+  function runFrameLoop() {
+    const video = webcamRef.current?.video
+    const canvas = canvasRef.current
+    const puck = puckRef.current
+    const handLandmarker = handLandmarkerRef.current
 
-      if (!video || !canvas || !puck || !handLandmarker) {
-        return
+    if (!video || !canvas || !puck || !handLandmarker) {
+      return
+    }
+
+    resizeCanvasToVideo(canvas, video)
+
+    if (hasNewVideoFrame(video, lastVideoTimeRef.current)) {
+      lastVideoTimeRef.current = video.currentTime
+      const results = handLandmarker.detectForVideo(video, performance.now())
+      const landmarks = results.landmarks?.[0]
+
+      if (landmarks) {
+        drawHand(canvas, landmarks)
+        const puckState = movePuckWithHand(landmarks, puck)
+
+        setTracking(createTrackingStatus(results, puckState))
+      } else {
+        clearCanvas(canvas)
+        showSearchingPuck(puck)
+        setTracking(createSearchingStatus())
       }
+    }
 
-      resizeCanvasToVideo(canvas, video)
+    animationRef.current = requestAnimationFrame(runFrameLoop)
+  }
 
-      if (hasNewVideoFrame(video, lastVideoTimeRef.current)) {
-        lastVideoTimeRef.current = video.currentTime
-        const results = handLandmarker.detectForVideo(video, performance.now())
-        const landmarks = results.landmarks?.[0]
-
-        if (landmarks) {
-          drawHand(canvas, landmarks)
-          const puckState = movePuckWithHand(landmarks, puck)
-
-          setTracking(createTrackingStatus(results, puckState))
-        } else {
-          clearCanvas(canvas)
-          showSearchingPuck(puck)
-          setTracking(createSearchingStatus())
-        }
-      }
-
-      animationRef.current = requestAnimationFrame(runFrameLoop)
-    },
-    [],
-  )
-
-  const startCamera = useCallback(async () => {
+  async function startCamera() {
     if (isRunning || tracking.mode === 'loading') {
       return
     }
@@ -96,47 +84,47 @@ export function useHandTracking() {
         handLandmarkerRef.current = await createHandLandmarker()
       }
 
-      streamRef.current = await navigator.mediaDevices.getUserMedia(CAMERA_SETTINGS)
-
-      await playVideo(videoRef.current, streamRef.current)
       setIsRunning(true)
       setTracking(createSearchingStatus())
-      runFrameLoop()
     } catch (error) {
       console.error(error)
       stopCamera()
       setTracking(createErrorStatus(getCameraErrorLabel(error)))
     }
-  }, [isRunning, runFrameLoop, stopCamera, tracking.mode])
+  }
+
+  function handleCameraReady() {
+    cancelAnimationFrame(animationRef.current)
+    runFrameLoop()
+  }
+
+  function handleCameraError(error) {
+    console.error(error)
+    stopCamera()
+    setTracking(createErrorStatus(getCameraErrorLabel(error)))
+  }
 
   useEffect(() => {
     showSearchingPuck(puckRef.current)
 
     return () => {
-      stopCamera()
+      cancelAnimationFrame(animationRef.current)
       handLandmarkerRef.current?.close()
     }
-  }, [stopCamera])
+  }, [])
 
   return {
     canvasRef,
+    handleCameraError,
+    handleCameraReady,
     isLoading: tracking.mode === 'loading',
     isRunning,
     puckRef,
     startCamera,
     stopCamera,
     tracking,
-    videoRef,
+    webcamRef,
   }
-}
-
-async function playVideo(video, stream) {
-  if (!video) {
-    throw new Error('Video element is unavailable.')
-  }
-
-  video.srcObject = stream
-  await video.play()
 }
 
 function hasNewVideoFrame(video, lastVideoTime) {
@@ -145,10 +133,6 @@ function hasNewVideoFrame(video, lastVideoTime) {
     video.videoWidth > 0 &&
     video.currentTime !== lastVideoTime
   )
-}
-
-function stopStream(stream) {
-  stream?.getTracks().forEach((track) => track.stop())
 }
 
 function showSearchingPuck(puck) {

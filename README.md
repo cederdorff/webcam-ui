@@ -2,6 +2,11 @@
 
 A small React app that lets a webcam-tracked hand move and pinch a puck.
 
+It uses:
+
+- `react-webcam` for the camera element
+- `@mediapipe/tasks-vision` for hand tracking
+
 ## Run the Project
 
 ```bash

@@ -7,13 +7,15 @@ import './App.css'
 function App() {
   const {
     canvasRef,
+    handleCameraError,
+    handleCameraReady,
     isLoading,
     isRunning,
     puckRef,
     startCamera,
     stopCamera,
     tracking,
-    videoRef,
+    webcamRef,
   } = useHandTracking()
 
   return (
@@ -29,11 +31,13 @@ function App() {
       <section className="workspace" aria-label="Hand controlled object">
         <TrackingStage
           canvasRef={canvasRef}
+          onCameraError={handleCameraError}
+          onCameraReady={handleCameraReady}
           isLoading={isLoading}
           isRunning={isRunning}
           onStartCamera={startCamera}
           puckRef={puckRef}
-          videoRef={videoRef}
+          webcamRef={webcamRef}
         />
 
         <ControlPanel

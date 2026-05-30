@@ -23,8 +23,7 @@ src/
   App.jsx                     Main page layout
   components/                 Small React UI pieces
   hooks/useHandTracking.js    Starts/stops the camera and runs each video frame
-  handTracking/               MediaPipe setup, hand drawing, and puck movement
-  utils/                      Tiny shared helper functions
+  handTracking.js             MediaPipe setup, hand drawing, and puck movement
 ```
 
 Start reading with `src/App.jsx`, then open `src/hooks/useHandTracking.js` to see how the webcam connects to the hand-tracking helpers.

@@ -1,5 +1,3 @@
-import { formatPercent } from '../utils/numbers'
-
 export function ControlPanel({
   isLoading,
   isRunning,
@@ -44,4 +42,10 @@ function getCameraButtonLabel(isRunning, isLoading) {
   }
 
   return 'Start camera'
+}
+
+function formatPercent(value) {
+  const safeValue = Math.min(Math.max(value, 0), 1)
+
+  return `${Math.round(safeValue * 100)}%`
 }

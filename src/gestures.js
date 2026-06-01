@@ -22,6 +22,10 @@ export function getHandGesture(landmarks) {
   const isPinching = grip > 0.6;
   const isPointingUp = indexTip.y < wrist.y;
   const openFingerCount = countOpenFingers(landmarks);
+  const pointerPosition = {
+    x: 1 - clamp(indexTip.x, 0.03, 0.97),
+    y: clamp(indexTip.y, 0.06, 0.94)
+  };
 
   return {
     grip,
@@ -30,28 +34,9 @@ export function getHandGesture(landmarks) {
     isPinching,
     isPointingUp,
     name: getGestureName({ isPinching, isPointingUp, openFingerCount }),
+    pointerPosition,
     rotation: clamp((middleBase.x - wrist.x) * -115, -34, 34)
   };
-}
-
-export function movePuckWithGesture(gesture, puck) {
-  const targetX = 1 - clamp(gesture.indexTip.x, 0.03, 0.97);
-  const targetY = clamp(gesture.indexTip.y, 0.06, 0.94);
-  const currentX = Number(puck.dataset.x) || 0.5;
-  const currentY = Number(puck.dataset.y) || 0.5;
-  const nextX = currentX + (targetX - currentX) * 0.26;
-  const nextY = currentY + (targetY - currentY) * 0.26;
-
-  puck.dataset.x = String(nextX);
-  puck.dataset.y = String(nextY);
-  puck.style.setProperty("--x", `${nextX * 100}%`);
-  puck.style.setProperty("--y", `${nextY * 100}%`);
-  puck.style.setProperty("--scale", String(0.96 + gesture.grip * 0.42));
-  puck.style.setProperty("--rotate", `${gesture.rotation}deg`);
-  puck.toggleAttribute("data-gripped", gesture.isPinching);
-  puck.removeAttribute("data-searching");
-
-  return { x: nextX, y: nextY };
 }
 
 function getGestureName({ isPinching, isPointingUp, openFingerCount }) {

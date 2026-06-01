@@ -86,15 +86,15 @@ h1 {
 
 .stage {
   position: relative;
-  min-height: 420px;
-  aspect-ratio: 16 / 9;
+  min-height: 320px;
+  height: clamp(320px, 58svh, 520px);
+  aspect-ratio: auto;
   overflow: hidden;
   border: 1px solid var(--line);
   border-radius: 8px;
   background:
     linear-gradient(90deg, rgba(255, 255, 255, 0.045) 1px, transparent 1px),
-    linear-gradient(rgba(255, 255, 255, 0.045) 1px, transparent 1px),
-    #151514;
+    linear-gradient(rgba(255, 255, 255, 0.045) 1px, transparent 1px), #151514;
   background-size: 36px 36px;
   box-shadow: var(--shadow);
 }
@@ -115,53 +115,6 @@ h1 {
 
 .landmark-layer {
   pointer-events: none;
-}
-
-.control-object {
-  --x: 50%;
-  --y: 50%;
-  --scale: 1;
-  --rotate: 0deg;
-
-  position: absolute;
-  left: var(--x);
-  top: var(--y);
-  z-index: 3;
-  width: clamp(54px, 7vw, 86px);
-  aspect-ratio: 1;
-  border: 2px solid rgba(255, 255, 255, 0.86);
-  border-radius: 18px;
-  background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.72), transparent 38%),
-    linear-gradient(135deg, var(--teal), var(--coral));
-  box-shadow:
-    0 18px 36px rgba(0, 0, 0, 0.36),
-    0 0 0 9px rgba(41, 210, 178, 0.14);
-  opacity: 1;
-  transform: translate(-50%, -50%) rotate(var(--rotate)) scale(var(--scale));
-  transition:
-    opacity 160ms ease,
-    box-shadow 160ms ease,
-    filter 160ms ease;
-  will-change: left, top, transform;
-}
-
-.control-object span {
-  position: absolute;
-  inset: 16%;
-  border: 2px solid rgba(255, 255, 255, 0.72);
-  border-radius: 10px;
-}
-
-.control-object[data-searching] {
-  opacity: 0.42;
-  filter: saturate(0.65);
-}
-
-.control-object[data-gripped] {
-  box-shadow:
-    0 18px 36px rgba(0, 0, 0, 0.38),
-    0 0 0 14px rgba(255, 184, 77, 0.2);
 }
 
 .game-target {
@@ -368,7 +321,9 @@ h1 {
   }
 
   .stage {
+    height: auto;
     min-height: 0;
+    aspect-ratio: 16 / 9;
   }
 
   .control-panel {

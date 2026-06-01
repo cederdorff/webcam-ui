@@ -9,7 +9,6 @@ export function TrackingStage({
   isLoading,
   isRunning,
   onStartCamera,
-  puckRef,
   webcamRef
 }) {
   return (
@@ -27,9 +26,6 @@ export function TrackingStage({
       )}
       <canvas ref={canvasRef} className="landmark-layer" aria-hidden="true" />
       {children}
-      <div ref={puckRef} className="control-object" role="img" aria-label="Puck">
-        <span></span>
-      </div>
 
       {!isRunning && (
         <div className="start-overlay">

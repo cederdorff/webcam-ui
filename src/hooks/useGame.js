@@ -13,20 +13,17 @@ export function useGame() {
 
   function resetGame() {
     wasPinchingRef.current = false;
-    setGame(createGameState("Move the puck onto the target."));
+    setGame(createGameState("Move your index finger onto the target."));
   }
 
   function handleNoHand() {
     wasPinchingRef.current = false;
-    updateGameStatus("Show one hand to find the puck.", false);
+    updateGameStatus("Show one hand to start tracking.", false);
   }
 
   function handleGesture(gesture) {
     const currentGame = gameRef.current;
-    const isTouchingTarget = isPuckTouchingTarget(
-      gesture.puckPosition,
-      currentGame.target
-    );
+    const isTouchingTarget = isPuckTouchingTarget(gesture.pointerPosition, currentGame.target);
     const didPinchStart = gesture.isPinching && !wasPinchingRef.current;
 
     wasPinchingRef.current = gesture.isPinching;
@@ -52,16 +49,13 @@ export function useGame() {
       return;
     }
 
-    updateGameStatus("Move the puck onto the target.", false);
+    updateGameStatus("Move your index finger onto the target.", false);
   }
 
   function updateGameStatus(message, isReadyToCatch) {
     const currentGame = gameRef.current;
 
-    if (
-      currentGame.message === message &&
-      currentGame.isReadyToCatch === isReadyToCatch
-    ) {
+    if (currentGame.message === message && currentGame.isReadyToCatch === isReadyToCatch) {
       return;
     }
 

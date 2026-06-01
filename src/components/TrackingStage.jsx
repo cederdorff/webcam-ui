@@ -1,5 +1,5 @@
-import Webcam from 'react-webcam'
-import { VIDEO_CONSTRAINTS } from '../handTracking'
+import Webcam from "react-webcam";
+import { VIDEO_CONSTRAINTS } from "../handTracking";
 
 export function TrackingStage({
   canvasRef,
@@ -9,10 +9,10 @@ export function TrackingStage({
   isRunning,
   onStartCamera,
   puckRef,
-  webcamRef,
+  webcamRef
 }) {
   return (
-    <div className="stage" data-running={isRunning ? 'true' : 'false'}>
+    <div className="stage" data-running={isRunning ? "true" : "false"}>
       {isRunning && (
         <Webcam
           ref={webcamRef}
@@ -32,10 +32,10 @@ export function TrackingStage({
       {!isRunning && (
         <div className="start-overlay">
           <button type="button" onClick={onStartCamera} disabled={isLoading}>
-            {isLoading ? 'Loading...' : 'Start camera'}
+            {isLoading ? "Loading..." : "Start camera"}
           </button>
         </div>
       )}
     </div>
-  )
+  );
 }

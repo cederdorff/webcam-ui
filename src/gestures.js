@@ -50,6 +50,8 @@ export function movePuckWithGesture(gesture, puck) {
   puck.style.setProperty("--rotate", `${gesture.rotation}deg`);
   puck.toggleAttribute("data-gripped", gesture.isPinching);
   puck.removeAttribute("data-searching");
+
+  return { x: nextX, y: nextY };
 }
 
 function getGestureName({ isPinching, isPointingUp, openFingerCount }) {

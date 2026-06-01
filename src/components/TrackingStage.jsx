@@ -3,6 +3,7 @@ import { VIDEO_CONSTRAINTS } from "../handTracking";
 
 export function TrackingStage({
   canvasRef,
+  children,
   onCameraError,
   onCameraReady,
   isLoading,
@@ -25,6 +26,7 @@ export function TrackingStage({
         />
       )}
       <canvas ref={canvasRef} className="landmark-layer" aria-hidden="true" />
+      {children}
       <div ref={puckRef} className="control-object" role="img" aria-label="Puck">
         <span></span>
       </div>

@@ -1,11 +1,11 @@
-# Hand Puck
+# Hand Puck Game
 
-Hand Puck is a small React app where you use your webcam to track your hand.
-Your index finger moves a puck on the screen, and simple hand gestures change
-the state shown in the control panel.
+Hand Puck is a small React webcam game where you use your hand as the
+controller. Your index finger moves a puck on the screen, and you pinch to catch
+targets.
 
 You can use this as a starting point for building your own webcam hand gesture
-experiments.
+games and experiments.
 
 After you can run the app, read the sections `How to Add Your Own Gesture` and
 `Project Ideas`. They show you where to change the code and give you ideas for
@@ -19,14 +19,16 @@ interaction:
 1. The webcam gives the browser a video frame.
 2. MediaPipe finds hand landmarks in that frame.
 3. `getHandGesture` turns those landmarks into simple gesture values.
-4. React updates the control panel.
-5. `movePuckWithGesture` changes what you see on the screen.
+4. `movePuckWithGesture` moves the puck.
+5. `useGame` checks whether the puck catches the target.
+6. React updates the score, target, and control panel.
 
 As you experiment, focus on these ideas:
 
 - Landmarks are points on the hand with `x` and `y` values.
 - A gesture can start as one small true-or-false check.
 - The control panel helps you test your gesture before you add behavior.
+- The game checks simple rules, such as whether two objects are touching.
 - React components should show the interface.
 - The custom hook should handle webcam and tracking logic.
 - Change one idea at a time, so you know what caused the result.
@@ -155,7 +157,9 @@ In the browser:
 2. Allow webcam permission when the browser asks.
 3. Hold one hand in front of the camera.
 4. Move your index finger to move the puck.
-5. Touch your index finger and thumb together to trigger pinch mode.
+5. Move the puck onto the target.
+6. Touch your index finger and thumb together to catch the target.
+7. Watch the score increase.
 
 If you change the code, the browser should update automatically. If it does not,
 refresh the page.
@@ -170,11 +174,16 @@ Choose `Allow`.
 After the camera starts, the status may say `Looking for hand`. This means the
 app is running, but MediaPipe has not found a hand yet.
 
+The screenshots below show the camera permission and hand tracking states. In
+this game branch, you will also see a target and a score panel.
+
 When MediaPipe finds your hand, you should see:
 
 - your webcam image,
 - dots and lines drawn on your hand,
 - the puck following your index finger,
+- a target to catch,
+- your score,
 - the current gesture in the status pill,
 - live values in the control panel.
 
@@ -196,11 +205,15 @@ src/
   App.jsx                         Puts the page together.
   components/
     TrackingStage.jsx             Shows the webcam, canvas, and puck.
+    Target.jsx                    Shows the target you catch.
+    GameHud.jsx                   Shows score, game message, and reset button.
     ControlPanel.jsx              Shows hand, gesture, confidence, and pinch state.
     StatusPill.jsx                Shows the current tracking status.
   hooks/
     useHandTracking.js            Starts/stops tracking and reads webcam frames.
+    useGame.js                    Keeps score and checks if the target is caught.
   gestures.js                     Your main playground for creating gestures.
+  game.js                         Small helper functions for the game rules.
   handTracking.js                 MediaPipe setup and hand drawing helpers.
   App.css                         Styling for the app.
   index.css                       Global page styling.
@@ -211,10 +224,13 @@ A good reading order is:
 
 1. `src/App.jsx`
 2. `src/components/TrackingStage.jsx`
-3. `src/components/ControlPanel.jsx`
-4. `src/hooks/useHandTracking.js`
-5. `src/gestures.js`
-6. `src/handTracking.js`
+3. `src/components/Target.jsx`
+4. `src/components/GameHud.jsx`
+5. `src/hooks/useGame.js`
+6. `src/hooks/useHandTracking.js`
+7. `src/gestures.js`
+8. `src/game.js`
+9. `src/handTracking.js`
 
 ## React Components
 
@@ -229,6 +245,8 @@ It renders:
 
 - `StatusPill`
 - `TrackingStage`
+- `Target`
+- `GameHud`
 - `ControlPanel`
 
 ### `TrackingStage.jsx`
@@ -239,11 +257,26 @@ It contains:
 
 - the `Webcam` component from `react-webcam`,
 - the `canvas` where hand landmarks are drawn,
+- the target,
 - the puck that follows your hand,
 - the `Start camera` button overlay.
 
 This is the component to change if you want to add more objects to the webcam
 area.
+
+### `Target.jsx`
+
+`Target` shows the circle you are trying to catch.
+
+Its position comes from `useGame`.
+
+### `GameHud.jsx`
+
+`GameHud` shows the game state:
+
+- score,
+- current game message,
+- reset button.
 
 ### `ControlPanel.jsx`
 
@@ -266,7 +299,7 @@ This is the component to change if you want to show more gesture data.
 - `Pinch active`
 - `Camera blocked`
 
-## The Custom Hook
+## The Custom Hooks
 
 ### `useHandTracking.js`
 
@@ -283,6 +316,7 @@ The hook is responsible for:
 - asking MediaPipe to detect a hand,
 - calling `getHandGesture`,
 - moving the puck,
+- sending gesture data to the game,
 - updating React state for the control panel.
 
 The most important function in this file is `runFrameLoop`.
@@ -295,7 +329,29 @@ Each time it runs, it:
 2. Sends the frame to MediaPipe.
 3. Gets the hand landmarks.
 4. Sends the landmarks to `gestures.js`.
-5. Updates the UI.
+5. Moves the puck.
+6. Sends the gesture to `useGame`.
+7. Updates the UI.
+
+### `useGame.js`
+
+`useGame` contains the game state.
+
+It keeps track of:
+
+- the score,
+- where the target is,
+- whether the puck is touching the target,
+- the message shown in the game panel.
+
+The game rule is simple:
+
+```text
+If the puck is touching the target and pinch just started, catch the target.
+```
+
+This is an important pattern. You can build many games by changing the rules
+inside `useGame`.
 
 ## The Gesture Playground
 
@@ -312,7 +368,9 @@ movePuckWithGesture(gesture, puck);
 
 `getHandGesture` reads the hand landmarks and decides which gesture is active.
 
-`movePuckWithGesture` uses the gesture data to move the puck on the screen.
+`movePuckWithGesture` uses the gesture data to move the puck on the screen. It
+also returns the puck position, so the game can check if the puck touches the
+target.
 
 Right now, the project detects:
 
@@ -323,6 +381,40 @@ Right now, the project detects:
 
 The control panel shows the current gesture, so you can quickly test whether
 your changes work.
+
+## The Game Rules
+
+### `game.js`
+
+`game.js` contains small helper functions for the game.
+
+It creates a random target position and checks whether the puck is close enough
+to catch the target.
+
+The most important function is:
+
+```js
+isPuckTouchingTarget(puckPosition, target);
+```
+
+This function compares two positions:
+
+- where the puck is,
+- where the target is.
+
+If the distance is small enough, the puck is touching the target.
+
+### `useGame.js`
+
+`useGame` uses the helper functions from `game.js`.
+
+It decides when to increase the score:
+
+```text
+puck touches target + pinch starts = point
+```
+
+It also creates a new target after you catch one.
 
 ## MediaPipe Helpers
 
@@ -443,7 +535,7 @@ For `y`:
 - smaller values are higher on the screen,
 - larger values are lower on the screen.
 
-The starter project does not detect `Pointing left` yet. That makes it a good
+The game project does not detect `Pointing left` yet. That makes it a good
 simple gesture to add yourself.
 
 To add `Pointing left`, compare the index fingertip with the wrist:
@@ -570,38 +662,42 @@ This is a good next challenge because it introduces memory over time.
 
 ## Project Ideas
 
-Here are some ideas you can build from this starter project.
+Here are some ideas you can build from this game project.
 
-Start small. First make the app detect your gesture. Then make the gesture do
-something visible on the screen.
+Start small. First change one rule. Then test the game. Then add one more idea.
 
-### 1. Change the Puck Color When You Pinch
+### 1. Change the Target
 
-Use `gesture.isPinching`.
+Try changing the target color, size, or shape in `App.css`.
 
-You can update a CSS variable or add an attribute to the puck in
-`movePuckWithGesture`.
+Look for:
 
-Try changing the puck color only while the pinch is active.
+```css
+.game-target
+```
 
-### 2. Make a Sound When a Pinch Starts
+This is a good first change because it only changes the visual design.
 
-Use the pinch gesture as a trigger.
+### 2. Change the Catch Distance
 
-A good challenge is to play the sound only once when the pinch begins, not again
-and again every frame.
+Open `src/game.js`.
 
-Hint: you may need to remember whether the hand was already pinching in the
-previous frame.
+Try changing:
 
-### 3. Count How Many Times You Pinch
+```js
+const CATCH_DISTANCE = 0.12;
+```
 
-Create a pinch counter.
+Larger numbers make the target easier to catch. Smaller numbers make the game
+harder.
 
-You can show the counter in `ControlPanel.jsx`.
+### 3. Add a Timer
 
-Hint: just like with sound, count only when the pinch changes from inactive to
-active.
+Give the player 30 seconds to catch as many targets as possible.
+
+You can show the time in `GameHud.jsx`.
+
+This is a good challenge because you need state that changes over time.
 
 ### 4. Control an Object With a Different Finger
 
@@ -615,17 +711,37 @@ Try using the middle finger tip instead.
 
 You will need landmark `12`, which is `MIDDLE_FINGER_TIP`.
 
-### 5. Pause the Puck With a Gesture
+### 5. Add Bonus Targets
 
-Create a gesture such as `Open hand`.
+Create a second kind of target that gives more points.
 
-When that gesture is active, stop updating the puck position.
+For example:
 
-Hint: `movePuckWithGesture` is the place where the puck position is changed.
+- normal target gives 1 point,
+- bonus target gives 5 points,
+- bonus target disappears after a few seconds.
 
-### 6. Create a Gesture-Controlled Drawing App
+### 6. Make a Sound When You Catch a Target
 
-Instead of moving a puck, draw on the canvas.
+Play a short sound when the score increases.
+
+A good challenge is to play the sound only once when the target is caught, not
+again and again every frame.
+
+### 7. Add a New Gesture
+
+For example:
+
+- open hand could pause the game,
+- pointing left could move to a menu,
+- thumbs up could add bonus points.
+
+Start by making the gesture appear in the control panel. Then connect it to a
+game rule.
+
+### 8. Create a Gesture-Controlled Drawing Game
+
+Instead of catching targets, draw on the canvas.
 
 For example:
 
@@ -634,32 +750,6 @@ For example:
 - open your hand to stop drawing.
 
 This is a bigger project because you need to remember previous positions.
-
-### 7. Create a Simple Collection Game
-
-Place objects on the screen and collect them with your hand.
-
-For example:
-
-- move the puck with your index finger,
-- collect a target when the puck touches it,
-- increase the score,
-- spawn a new target.
-
-You can start with one target before adding more.
-
-### 8. Show More Gesture Data in the Control Panel
-
-Add a new value to the object returned from `getHandGesture`.
-
-Then show that value in `ControlPanel.jsx`.
-
-For example, you could show:
-
-- open finger count,
-- pinch distance,
-- whether your new gesture is active,
-- whether the hand is above or below the middle of the screen.
 
 ## Troubleshooting
 

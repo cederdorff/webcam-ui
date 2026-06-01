@@ -8,12 +8,13 @@ import {
 } from '../handTracking'
 import { getHandGesture, movePuckWithGesture } from '../gestures'
 
-export function useHandTracking() {
+export function useHandTracking({ onGesture, onNoHand } = {}) {
   const webcamRef = useRef(null)
   const canvasRef = useRef(null)
   const puckRef = useRef(null)
   const handLandmarkerRef = useRef(null)
   const animationRef = useRef(0)
+  const callbacksRef = useRef({ onGesture, onNoHand })
   const lastVideoTimeRef = useRef(-1)
 
   const [isRunning, setIsRunning] = useState(false)
@@ -28,6 +29,7 @@ export function useHandTracking() {
     clearCanvas(canvasRef.current)
     showSearchingPuck(puckRef.current)
     setIsRunning(false)
+    callbacksRef.current.onNoHand?.()
     setTracking(READY_STATUS)
   }
 
@@ -51,12 +53,15 @@ export function useHandTracking() {
       if (landmarks) {
         drawHand(canvas, landmarks)
         const gesture = getHandGesture(landmarks)
+        const puckPosition = movePuckWithGesture(gesture, puck)
+        const gestureWithPuck = { ...gesture, puckPosition }
 
-        movePuckWithGesture(gesture, puck)
-        setTracking(createTrackingStatus(results, gesture))
+        callbacksRef.current.onGesture?.(gestureWithPuck)
+        setTracking(createTrackingStatus(results, gestureWithPuck))
       } else {
         clearCanvas(canvas)
         showSearchingPuck(puck)
+        callbacksRef.current.onNoHand?.()
         setTracking(createSearchingStatus())
       }
     }
@@ -113,6 +118,10 @@ export function useHandTracking() {
       handLandmarkerRef.current?.close()
     }
   }, [])
+
+  useEffect(() => {
+    callbacksRef.current = { onGesture, onNoHand }
+  }, [onGesture, onNoHand])
 
   return {
     canvasRef,

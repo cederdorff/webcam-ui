@@ -73,9 +73,15 @@ h1 {
 
 .workspace {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 250px;
+  grid-template-columns: minmax(0, 1fr) 270px;
   gap: 16px;
   align-items: stretch;
+}
+
+.side-panel {
+  display: grid;
+  align-content: start;
+  gap: 16px;
 }
 
 .stage {
@@ -158,6 +164,51 @@ h1 {
     0 0 0 14px rgba(255, 184, 77, 0.2);
 }
 
+.game-target {
+  --target-x: 50%;
+  --target-y: 50%;
+
+  position: absolute;
+  left: var(--target-x);
+  top: var(--target-y);
+  z-index: 2;
+  width: clamp(52px, 6vw, 78px);
+  aspect-ratio: 1;
+  border: 3px solid rgba(255, 184, 77, 0.95);
+  border-radius: 50%;
+  background: rgba(255, 184, 77, 0.18);
+  box-shadow:
+    0 14px 34px rgba(0, 0, 0, 0.24),
+    0 0 0 10px rgba(255, 184, 77, 0.12);
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+}
+
+.game-target span {
+  position: absolute;
+  inset: 28%;
+  border-radius: 50%;
+  background: var(--amber);
+}
+
+.game-target[data-ready="true"] {
+  border-color: rgba(31, 187, 166, 0.95);
+  background: rgba(31, 187, 166, 0.18);
+  box-shadow:
+    0 14px 34px rgba(0, 0, 0, 0.24),
+    0 0 0 14px rgba(31, 187, 166, 0.18);
+  transform: translate(-50%, -50%) scale(1.08);
+}
+
+.game-target[data-ready="true"] span {
+  background: var(--teal);
+}
+
 .start-overlay {
   position: absolute;
   inset: 0;
@@ -169,7 +220,8 @@ h1 {
 }
 
 .start-overlay button,
-.camera-button {
+.camera-button,
+.game-hud button {
   min-height: 44px;
   border: 0;
   border-radius: 8px;
@@ -190,22 +242,68 @@ h1 {
 }
 
 .start-overlay button:hover,
-.camera-button:hover {
+.camera-button:hover,
+.game-hud button:hover {
   transform: translateY(-1px);
   background: var(--teal-dark);
 }
 
 .start-overlay button:focus-visible,
-.camera-button:focus-visible {
+.camera-button:focus-visible,
+.game-hud button:focus-visible {
   outline: 3px solid var(--focus);
   outline-offset: 3px;
 }
 
 .start-overlay button:disabled,
-.camera-button:disabled {
+.camera-button:disabled,
+.game-hud button:disabled {
   cursor: progress;
   opacity: 0.7;
   transform: none;
+}
+
+.game-hud {
+  min-height: 178px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+  box-shadow: var(--shadow-soft);
+  padding: 16px;
+  display: grid;
+  gap: 12px;
+}
+
+.game-hud div {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.game-hud span {
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.game-hud strong {
+  color: var(--text-strong);
+  font-size: 2.6rem;
+  line-height: 1;
+}
+
+.game-hud p {
+  min-height: 48px;
+  margin: 0;
+  color: var(--text);
+  font-weight: 700;
+}
+
+.game-hud button {
+  width: 100%;
+  padding: 0 16px;
 }
 
 .control-panel {
@@ -262,6 +360,10 @@ h1 {
   }
 
   .workspace {
+    grid-template-columns: 1fr;
+  }
+
+  .side-panel {
     grid-template-columns: 1fr;
   }
 

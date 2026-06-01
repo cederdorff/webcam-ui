@@ -22,7 +22,6 @@ export function getHandGesture(landmarks) {
   const isPinching = grip > 0.6;
   const isPointingUp = indexTip.y < wrist.y;
   const openFingerCount = countOpenFingers(landmarks);
-  const isPointingLeft = indexTip.x < wrist.x;
 
   return {
     grip,
@@ -30,8 +29,7 @@ export function getHandGesture(landmarks) {
     isOpenHand: openFingerCount >= 4,
     isPinching,
     isPointingUp,
-    isPointingLeft,
-    name: getGestureName({ isPinching, isPointingUp, isPointingLeft, openFingerCount }),
+    name: getGestureName({ isPinching, isPointingUp, openFingerCount }),
     rotation: clamp((middleBase.x - wrist.x) * -115, -34, 34)
   };
 }
@@ -54,7 +52,7 @@ export function movePuckWithGesture(gesture, puck) {
   puck.removeAttribute("data-searching");
 }
 
-function getGestureName({ isPinching, isPointingUp, isPointingLeft, openFingerCount }) {
+function getGestureName({ isPinching, isPointingUp, openFingerCount }) {
   if (isPinching) {
     return "Pinch";
   }
@@ -65,10 +63,6 @@ function getGestureName({ isPinching, isPointingUp, isPointingLeft, openFingerCo
 
   if (isPointingUp) {
     return "Pointing up";
-  }
-
-  if (isPointingLeft) {
-    return "Pointing left";
   }
 
   return "Tracking";

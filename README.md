@@ -266,6 +266,7 @@ Right now, the project detects:
 - `Pinch`
 - `Open hand`
 - `Pointing up`
+- `Pointing left`
 - `Tracking`
 
 The control panel shows the current gesture, so you can quickly test whether
@@ -355,7 +356,7 @@ You will usually work in three steps:
 2. Create a boolean variable that checks if the gesture is happening.
 3. Show the gesture name in the control panel.
 
-### Example: Add `Pointing left`
+### Example: Add `Pointing right`
 
 First, look inside `getHandGesture`.
 
@@ -378,14 +379,15 @@ For `y`:
 - smaller values are higher on the screen,
 - larger values are lower on the screen.
 
-To detect if the index finger is pointing left, compare the index fingertip with
-the wrist:
+The starter project already detects `Pointing left`.
+
+To add `Pointing right`, compare the index fingertip with the wrist:
 
 ```js
-const isPointingLeft = indexTip.x < wrist.x
+const isPointingRight = indexTip.x > wrist.x
 ```
 
-This means: the index fingertip is further left than the wrist.
+This means: the index fingertip is further right than the wrist.
 
 Next, include the new value in the object that is returned from
 `getHandGesture`:
@@ -397,10 +399,12 @@ return {
   isOpenHand: openFingerCount >= 4,
   isPinching,
   isPointingLeft,
+  isPointingRight,
   isPointingUp,
   name: getGestureName({
     isPinching,
     isPointingLeft,
+    isPointingRight,
     isPointingUp,
     openFingerCount,
   }),
@@ -414,6 +418,7 @@ Then update `getGestureName` so it can return your new gesture name:
 function getGestureName({
   isPinching,
   isPointingLeft,
+  isPointingRight,
   isPointingUp,
   openFingerCount,
 }) {
@@ -423,6 +428,10 @@ function getGestureName({
 
   if (isPointingLeft) {
     return 'Pointing left'
+  }
+
+  if (isPointingRight) {
+    return 'Pointing right'
   }
 
   if (openFingerCount >= 4) {
@@ -443,10 +452,10 @@ Now run the app and check the `Gesture` field in the control panel.
 
 After your gesture is detected, you can use it in `movePuckWithGesture`.
 
-For example, you can make the puck larger when pointing left:
+For example, you can make the puck larger when pointing right:
 
 ```js
-const scale = gesture.isPointingLeft ? 1.6 : 0.96 + gesture.grip * 0.42
+const scale = gesture.isPointingRight ? 1.6 : 0.96 + gesture.grip * 0.42
 
 puck.style.setProperty('--scale', String(scale))
 ```

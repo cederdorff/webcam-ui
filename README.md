@@ -4,12 +4,38 @@ Hand Puck is a small React app where you use your webcam to track your hand.
 Your index finger moves a puck on the screen, and simple hand gestures change
 the state shown in the control panel.
 
+![The puck following the index finger](./public/screenshots/tracking-puck.png)
+
 You can use this as a starting point for building your own webcam hand gesture
 experiments.
 
-When you are ready to create your own version, read the sections
-`How to Add Your Own Gesture` and `Project Ideas`. They show you where to change
-the code and give you ideas for what to build next.
+After you can run the app, read the sections `How to Add Your Own Gesture` and
+`Project Ideas`. They show you where to change the code and give you ideas for
+what to build next.
+
+## What You Should Focus On
+
+The most important part of this project is the path from webcam input to visible
+interaction:
+
+1. The webcam gives the browser a video frame.
+2. MediaPipe finds hand landmarks in that frame.
+3. `getHandGesture` turns those landmarks into simple gesture values.
+4. React updates the control panel.
+5. `movePuckWithGesture` changes what you see on the screen.
+
+As you experiment, focus on these ideas:
+
+- Landmarks are points on the hand with `x` and `y` values.
+- A gesture can start as one small true-or-false check.
+- The control panel helps you test your gesture before you add behavior.
+- React components should show the interface.
+- The custom hook should handle webcam and tracking logic.
+- Change one idea at a time, so you know what caused the result.
+
+You do not need to understand every MediaPipe detail before you begin. Use
+MediaPipe as a library that gives you hand points, then write your own rules on
+top of those points.
 
 ## What You Will Build With
 
@@ -136,6 +162,35 @@ In the browser:
 If you change the code, the browser should update automatically. If it does not,
 refresh the page.
 
+## What You Should See
+
+When you click `Start camera`, your browser may ask for camera permission.
+Choose `Allow`.
+
+![Browser camera permission dialog](./public/screenshots/camera-permission.png)
+
+After the camera starts, the status may say `Looking for hand`. This means the
+app is running, but MediaPipe has not found a hand yet.
+
+When MediaPipe finds your hand, you should see:
+
+- your webcam image,
+- dots and lines drawn on your hand,
+- the puck following your index finger,
+- the current gesture in the status pill,
+- live values in the control panel.
+
+If you point one finger upward, the gesture should change to `Pointing up`. If
+you touch your thumb and index finger together, the pinch value should change to
+`Active`.
+
+![Hand tracking with pointing up detected](./public/screenshots/pointing-up.png)
+
+The puck follows your index finger. When you move your hand, the puck should move
+with it.
+
+![The puck following the index finger](./public/screenshots/tracking-puck.png)
+
 ## Project Structure
 
 ```text
@@ -253,8 +308,8 @@ This is the best file to start changing.
 It has two main functions:
 
 ```js
-getHandGesture(landmarks)
-movePuckWithGesture(gesture, puck)
+getHandGesture(landmarks);
+movePuckWithGesture(gesture, puck);
 ```
 
 `getHandGesture` reads the hand landmarks and decides which gesture is active.
@@ -302,9 +357,9 @@ on the hand.
 Each landmark has a number. In code, you get a landmark by using that number:
 
 ```js
-const wrist = landmarks[0]
-const thumbTip = landmarks[4]
-const indexTip = landmarks[8]
+const wrist = landmarks[0];
+const thumbTip = landmarks[4];
+const indexTip = landmarks[8];
 ```
 
 Useful landmark numbers:
@@ -323,8 +378,8 @@ Each landmark has an `x` and `y` value between `0` and `1`.
 For example:
 
 ```js
-const indexTip = landmarks[8]
-const thumbTip = landmarks[4]
+const indexTip = landmarks[8];
+const thumbTip = landmarks[4];
 ```
 
 You can read that example like this:
@@ -339,8 +394,8 @@ In `gestures.js`, these numbers are given readable names:
 const LANDMARK = {
   WRIST: 0,
   THUMB_TIP: 4,
-  INDEX_TIP: 8,
-}
+  INDEX_TIP: 8
+};
 ```
 
 Using names like `INDEX_TIP` is easier to read than using numbers everywhere.
@@ -348,6 +403,18 @@ Using names like `INDEX_TIP` is easier to read than using numbers everywhere.
 ## How to Add Your Own Gesture
 
 Open `src/gestures.js`.
+
+Before you write code, describe your gesture in one sentence:
+
+```text
+The gesture is active when ...
+```
+
+For example:
+
+```text
+The gesture is active when the index fingertip is left of the wrist.
+```
 
 You will usually work in three steps:
 
@@ -362,8 +429,8 @@ First, look inside `getHandGesture`.
 You already have access to useful points:
 
 ```js
-const wrist = landmarks[LANDMARK.WRIST]
-const indexTip = landmarks[LANDMARK.INDEX_TIP]
+const wrist = landmarks[LANDMARK.WRIST];
+const indexTip = landmarks[LANDMARK.INDEX_TIP];
 ```
 
 The hand landmarks use values between `0` and `1`.
@@ -384,7 +451,7 @@ simple gesture to add yourself.
 To add `Pointing left`, compare the index fingertip with the wrist:
 
 ```js
-const isPointingLeft = indexTip.x < wrist.x
+const isPointingLeft = indexTip.x < wrist.x;
 ```
 
 This means: the index fingertip is further left than the wrist.
@@ -405,38 +472,33 @@ return {
     isPinching,
     isPointingLeft,
     isPointingUp,
-    openFingerCount,
+    openFingerCount
   }),
-  rotation: clamp((middleBase.x - wrist.x) * -115, -34, 34),
-}
+  rotation: clamp((middleBase.x - wrist.x) * -115, -34, 34)
+};
 ```
 
 Then update `getGestureName` so it can return your new gesture name:
 
 ```js
-function getGestureName({
-  isPinching,
-  isPointingLeft,
-  isPointingUp,
-  openFingerCount,
-}) {
+function getGestureName({ isPinching, isPointingLeft, isPointingUp, openFingerCount }) {
   if (isPinching) {
-    return 'Pinch'
+    return "Pinch";
   }
 
   if (isPointingLeft) {
-    return 'Pointing left'
+    return "Pointing left";
   }
 
   if (openFingerCount >= 4) {
-    return 'Open hand'
+    return "Open hand";
   }
 
   if (isPointingUp) {
-    return 'Pointing up'
+    return "Pointing up";
   }
 
-  return 'Tracking'
+  return "Tracking";
 }
 ```
 
@@ -449,9 +511,9 @@ After your gesture is detected, you can use it in `movePuckWithGesture`.
 For example, you can make the puck larger when pointing left:
 
 ```js
-const scale = gesture.isPointingLeft ? 1.6 : 0.96 + gesture.grip * 0.42
+const scale = gesture.isPointingLeft ? 1.6 : 0.96 + gesture.grip * 0.42;
 
-puck.style.setProperty('--scale', String(scale))
+puck.style.setProperty("--scale", String(scale));
 ```
 
 You can also use gestures in React components. For example, if you add a new
@@ -473,8 +535,8 @@ value to the gesture object, you can show it in `ControlPanel.jsx`.
 Compare the thumb tip and index finger tip.
 
 ```js
-const distance = Math.hypot(indexTip.x - thumbTip.x, indexTip.y - thumbTip.y)
-const isPinching = distance < 0.06
+const distance = Math.hypot(indexTip.x - thumbTip.x, indexTip.y - thumbTip.y);
+const isPinching = distance < 0.06;
 ```
 
 ### Pointing Up
@@ -482,7 +544,7 @@ const isPinching = distance < 0.06
 Compare the index fingertip with the wrist.
 
 ```js
-const isPointingUp = indexTip.y < wrist.y
+const isPointingUp = indexTip.y < wrist.y;
 ```
 
 Smaller `y` means higher on the screen.
@@ -492,10 +554,10 @@ Smaller `y` means higher on the screen.
 Check whether several fingertips are higher than their base joints.
 
 ```js
-const indexIsOpen = landmarks[8].y < landmarks[5].y
-const middleIsOpen = landmarks[12].y < landmarks[9].y
-const ringIsOpen = landmarks[16].y < landmarks[13].y
-const pinkyIsOpen = landmarks[20].y < landmarks[17].y
+const indexIsOpen = landmarks[8].y < landmarks[5].y;
+const middleIsOpen = landmarks[12].y < landmarks[9].y;
+const ringIsOpen = landmarks[16].y < landmarks[13].y;
+const pinkyIsOpen = landmarks[20].y < landmarks[17].y;
 ```
 
 ### Swipe
@@ -503,7 +565,7 @@ const pinkyIsOpen = landmarks[20].y < landmarks[17].y
 Store the previous index finger position, then compare it with the new one.
 
 ```js
-const movedRight = currentIndexX - previousIndexX > 0.1
+const movedRight = currentIndexX - previousIndexX > 0.1;
 ```
 
 This is a good next challenge because it introduces memory over time.
@@ -548,7 +610,7 @@ active.
 Right now the puck follows the index finger tip:
 
 ```js
-gesture.indexTip
+gesture.indexTip;
 ```
 
 Try using the middle finger tip instead.

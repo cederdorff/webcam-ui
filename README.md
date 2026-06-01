@@ -4,8 +4,6 @@ Hand Puck is a small React app where you use your webcam to track your hand.
 Your index finger moves a puck on the screen, and simple hand gestures change
 the state shown in the control panel.
 
-![The puck following the index finger](./public/screenshots/tracking-puck.png)
-
 You can use this as a starting point for building your own webcam hand gesture
 experiments.
 

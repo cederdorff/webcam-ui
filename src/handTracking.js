@@ -17,6 +17,7 @@ export const READY_STATUS = {
   label: 'Ready',
   hand: 'No hand',
   confidence: 0,
+  gesture: 'None',
   pinching: false,
 }
 
@@ -68,43 +69,6 @@ export function drawHand(canvas, landmarks) {
     lineWidth: 1,
     radius: ({ index }) => (index === 4 || index === 8 ? 9 : 6),
   })
-}
-
-export function movePuckWithHand(landmarks, puck) {
-  const indexTip = landmarks[8]
-  const thumbTip = landmarks[4]
-  const wrist = landmarks[0]
-  const middleFingerBase = landmarks[9]
-
-  const targetX = 1 - DrawingUtils.clamp(indexTip.x, 0.03, 0.97)
-  const targetY = DrawingUtils.clamp(indexTip.y, 0.06, 0.94)
-  const currentX = Number(puck.dataset.x) || 0.5
-  const currentY = Number(puck.dataset.y) || 0.5
-  const nextX = currentX + (targetX - currentX) * 0.26
-  const nextY = currentY + (targetY - currentY) * 0.26
-
-  const pinchDistance = Math.hypot(
-    indexTip.x - thumbTip.x,
-    indexTip.y - thumbTip.y,
-  )
-  const grip = DrawingUtils.clamp(1 - (pinchDistance - 0.035) / 0.11, 0, 1)
-  const rotation = DrawingUtils.clamp(
-    (middleFingerBase.x - wrist.x) * -115,
-    -34,
-    34,
-  )
-  const pinching = grip > 0.6
-
-  puck.dataset.x = String(nextX)
-  puck.dataset.y = String(nextY)
-  puck.style.setProperty('--x', `${nextX * 100}%`)
-  puck.style.setProperty('--y', `${nextY * 100}%`)
-  puck.style.setProperty('--scale', String(0.96 + grip * 0.42))
-  puck.style.setProperty('--rotate', `${rotation}deg`)
-  puck.toggleAttribute('data-gripped', pinching)
-  puck.removeAttribute('data-searching')
-
-  return { grip, pinching }
 }
 
 function createLandmarker(vision, delegate) {

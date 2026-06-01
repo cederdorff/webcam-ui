@@ -4,9 +4,9 @@ import {
   clearCanvas,
   createHandLandmarker,
   drawHand,
-  movePuckWithHand,
   resizeCanvasToVideo,
 } from '../handTracking'
+import { getHandGesture, movePuckWithGesture } from '../gestures'
 
 export function useHandTracking() {
   const webcamRef = useRef(null)
@@ -50,9 +50,10 @@ export function useHandTracking() {
 
       if (landmarks) {
         drawHand(canvas, landmarks)
-        const puckState = movePuckWithHand(landmarks, puck)
+        const gesture = getHandGesture(landmarks)
 
-        setTracking(createTrackingStatus(results, puckState))
+        movePuckWithGesture(gesture, puck)
+        setTracking(createTrackingStatus(results, gesture))
       } else {
         clearCanvas(canvas)
         showSearchingPuck(puck)
@@ -148,15 +149,16 @@ function createSearchingStatus() {
   }
 }
 
-function createTrackingStatus(results, puckState) {
+function createTrackingStatus(results, gesture) {
   const hand = results.handednesses?.[0]?.[0]
 
   return {
     mode: 'tracking',
-    label: puckState.pinching ? 'Pinch active' : 'Tracking',
+    label: gesture.isPinching ? 'Pinch active' : gesture.name,
     hand: hand?.categoryName ?? 'Hand',
-    confidence: hand?.score ?? puckState.grip,
-    pinching: puckState.pinching,
+    confidence: hand?.score ?? gesture.grip,
+    gesture: gesture.name,
+    pinching: gesture.isPinching,
   }
 }
 

@@ -1,15 +1,10 @@
-export function ControlPanel({
-  isLoading,
-  isRunning,
-  onStartCamera,
-  onStopCamera,
-  tracking,
-}) {
+export function ControlPanel({ isLoading, isRunning, onStartCamera, onStopCamera, tracking }) {
   return (
     <aside className="control-panel">
       <Metric label="Hand" value={tracking.hand} />
+      <Metric label="Gesture" value={tracking.gesture} />
       <Metric label="Confidence" value={formatPercent(tracking.confidence)} />
-      <Metric label="Pinch" value={tracking.pinching ? 'Active' : 'Idle'} />
+      <Metric label="Pinch" value={tracking.pinching ? "Active" : "Idle"} />
 
       <button
         type="button"
@@ -20,7 +15,7 @@ export function ControlPanel({
         {getCameraButtonLabel(isRunning, isLoading)}
       </button>
     </aside>
-  )
+  );
 }
 
 function Metric({ label, value }) {
@@ -29,23 +24,23 @@ function Metric({ label, value }) {
       <span>{label}</span>
       <strong>{value}</strong>
     </div>
-  )
+  );
 }
 
 function getCameraButtonLabel(isRunning, isLoading) {
   if (isRunning) {
-    return 'Stop camera'
+    return "Stop camera";
   }
 
   if (isLoading) {
-    return 'Loading...'
+    return "Loading...";
   }
 
-  return 'Start camera'
+  return "Start camera";
 }
 
 function formatPercent(value) {
-  const safeValue = Math.min(Math.max(value, 0), 1)
+  const safeValue = Math.min(Math.max(value, 0), 1);
 
-  return `${Math.round(safeValue * 100)}%`
+  return `${Math.round(safeValue * 100)}%`;
 }
